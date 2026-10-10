@@ -1,0 +1,107 @@
+# ===================================================================
+# Codex CLI 配置文件
+#
+# 存放位置：
+#   macOS / Linux : ~/.codex/config.toml
+#   Windows       : C:\Users\<你的用户名>\.codex\config.toml
+#
+# 保存即生效（下次启动 codex 时读取）。没写的项都用默认值，
+# 想恢复默认直接删掉对应行即可。
+#
+# 登录方式（三选一）：
+#   1. ChatGPT 账号：运行 codex 后选 "Sign in with ChatGPT"（不用配 key）
+#   2. key 直接写进文件（推荐，不用环境变量）：见下方"API key 写文件"两节
+#   3. 环境变量 OPENAI_API_KEY（这条报错的话就换第 2 条）
+# ===================================================================
+
+# ---------------- 模型 ----------------
+# 默认模型。codex 专用模型如 "gpt-5.2-codex"，通用模型如 "gpt-5.5"
+model = "gpt-5.2-codex"
+
+# 推理强度：minimal | low | medium | high | xhigh
+# 日常 medium 够用；啃硬骨头时改 high / xhigh（更慢更贵）
+model_reasoning_effort = "medium"
+
+# 回答详略：low | medium | high
+model_verbosity = "medium"
+
+# ---------------- 执行权限 ----------------
+# 审批策略（什么时候停下来问你）：
+#   untrusted   - 只对不受信任的命令要求确认（默认）
+#   on-failure  - 命令失败时才问
+#   on-request  - 模型觉得需要时才问
+#   never       - 从不问，全自动（危险）
+approval_policy = "on-request"
+
+# 沙盒模式（允许动哪些文件/命令）：
+#   read-only          - 只读：不能写文件、不能执行命令
+#   workspace-write    - 只能读写当前工作区，超出范围要审批
+#   danger-full-access - 无限制；不要和 approval_policy = "never" 组合用
+sandbox_mode = "workspace-write"
+
+# workspace-write 沙盒下是否允许出站网络
+[sandbox_workspace_write]
+network_access = false
+
+# ---------------- 官方 OpenAI 接口：key 写文件（不用环境变量） ----------------
+# 新建一个文件（和 config.toml 放同一目录）：
+#   macOS / Linux : ~/.codex/auth.json
+#   Windows       : C:\Users\<你的用户名>\.codex\auth.json
+# 内容只有一行：
+#   { "OPENAI_API_KEY": "sk-把你的key粘在这里" }
+# 注意：auth.json 别发给别人、别传网盘。
+
+# ---------------- 历史与工具 ----------------
+[history]
+# save-all 保存全部会话历史；none 不保存
+persistence = "save-all"
+
+[tools]
+# 原生联网搜索工具
+web_search = true
+
+# ---------------- 预设方案（可选） ----------------
+# 用法：codex -p max "重构这个模块"  /  codex -p fast "修个小 bug"
+[profiles.max]
+model = "gpt-5.2-codex"
+model_verbosity = "high"
+model_reasoning_effort = "xhigh"
+
+[profiles.fast]
+model = "gpt-5.1-codex-mini"
+model_verbosity = "low"
+model_reasoning_effort = "low"
+
+# ---------------- 信任的项目目录（可选） ----------------
+# 把常用目录标为信任，减少审批打断。路径按你的系统写。
+# [projects."D:/code/myproject"]
+# trust_level = "trusted"
+
+# ---------------- 自定义模型供应商（可选） ----------------
+# 走第三方 OpenAI 兼容中转接口时用。把下面的注释取消、key 填进去即可。
+#
+# 重要：A 和 B 两种写法只留一种！
+# 留着 env_key 那行、但环境变量没设置时，codex 会直接报
+# "Missing environment variable: ..." 的错，哪怕 A 的 key 已经填对了。
+# 所以选 A 就把 env_key 那行删掉（或保持注释），选 B 就别填 A。
+#
+# [model_providers.myproxy]
+# name     = "My Proxy"
+# base_url = "https://api.example.com/v1"
+# wire_api = "responses"   # responses 或 chat，按接口文档选
+#
+# A. key 直接写进文件（推荐，不用环境变量）：
+# experimental_bearer_token = "把key粘在这里"
+#
+# B. 走环境变量（Windows 用 setx 设用户级变量，设完要重启终端再生效）：
+# env_key  = "MYPROXY_API_KEY"
+#
+# 启用：取消上面注释后，在文件顶部加一行：
+# model_provider = "myproxy"
+
+# ---------------- MCP 服务（可选） ----------------
+# 给 codex 接外部工具。推荐用 `codex mcp add` 命令添加，下面是手写示例：
+# [mcp_servers.context7]
+# command = "npx"
+# args    = ["-y", "@upstash/context7-mcp"]
+# enabled = true
